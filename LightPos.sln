@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos", "LightPos\LightPos\LightPos.csproj", "{2711971C-E06F-4EB4-B46D-482FFEFEEF34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Shared", "LightPos\LightPos.Shared\LightPos.Shared.csproj", "{FC0DA266-1DF2-45F1-B11A-B0A0D6AA2C39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Web", "LightPos\LightPos.Web\LightPos.Web.csproj", "{7EF1B46A-5132-42F9-BB5A-A8E7AC5A83AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Web.Client", "LightPos\LightPos.Web.Client\LightPos.Web.Client.csproj", "{8F53CA78-C2BD-4029-9311-ED7F951A3982}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Core", "LightPos.Core\LightPos.Core.csproj", "{4E80232A-A071-4939-8F68-61E767697C27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Infrastructure", "LightPos.Infrastructure\LightPos.Infrastructure.csproj", "{80CB560F-3DE5-4563-B627-41526250B54F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightPos.Application", "LightPos.Application\LightPos.Application.csproj", "{8735568A-3255-4A52-B157-FE2BAB327CBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2711971C-E06F-4EB4-B46D-482FFEFEEF34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2711971C-E06F-4EB4-B46D-482FFEFEEF34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2711971C-E06F-4EB4-B46D-482FFEFEEF34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2711971C-E06F-4EB4-B46D-482FFEFEEF34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC0DA266-1DF2-45F1-B11A-B0A0D6AA2C39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC0DA266-1DF2-45F1-B11A-B0A0D6AA2C39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC0DA266-1DF2-45F1-B11A-B0A0D6AA2C39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC0DA266-1DF2-45F1-B11A-B0A0D6AA2C39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF1B46A-5132-42F9-BB5A-A8E7AC5A83AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF1B46A-5132-42F9-BB5A-A8E7AC5A83AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF1B46A-5132-42F9-BB5A-A8E7AC5A83AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF1B46A-5132-42F9-BB5A-A8E7AC5A83AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F53CA78-C2BD-4029-9311-ED7F951A3982}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F53CA78-C2BD-4029-9311-ED7F951A3982}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F53CA78-C2BD-4029-9311-ED7F951A3982}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F53CA78-C2BD-4029-9311-ED7F951A3982}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E80232A-A071-4939-8F68-61E767697C27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E80232A-A071-4939-8F68-61E767697C27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E80232A-A071-4939-8F68-61E767697C27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E80232A-A071-4939-8F68-61E767697C27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80CB560F-3DE5-4563-B627-41526250B54F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80CB560F-3DE5-4563-B627-41526250B54F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80CB560F-3DE5-4563-B627-41526250B54F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80CB560F-3DE5-4563-B627-41526250B54F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8735568A-3255-4A52-B157-FE2BAB327CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8735568A-3255-4A52-B157-FE2BAB327CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8735568A-3255-4A52-B157-FE2BAB327CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8735568A-3255-4A52-B157-FE2BAB327CBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

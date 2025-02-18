@@ -1,0 +1,330 @@
+﻿@page "/"
+@using LightPos.Core.Application.DTOs
+@using LightPos.Core.Application.IServices
+@using LightPos.Shared.Components
+@using LightPos.Shared.Services
+@using MudBlazor.Services
+@using System
+@using MudBlazor
+@inject IFormFactor FormFactor
+@inject ISelfService _selfService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+<div class="d-flex">
+    <div style="flex: 1;">
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            @foreach (var category in categories)
+            {
+                <MudTabPanel Text="@category.Name">
+                    <MudGrid>
+                        @foreach (var product in category.Products)
+                        {
+                            <MudItem xs="12" sm="6" md="4" lg="3">
+                                <MudCard Outlined="true" 
+                                         @onclick="@(() => AddToCart(product))"
+                                         Style="border-radius: 12px; 
+                                                transition: all 0.2s ease-in-out;
+                                                cursor: pointer;
+                                                height: 100%;
+                                                border: 1px solid #e2e8f0;
+                                                background-color: #f8fafc;"
+                                         Elevation="3"
+                                         Class="ma-2 position-relative product-card">
+                                    <MudCardContent Class="pa-6">
+                                        <MudText Typo="Typo.h6" 
+                                                 Class="mb-4 text-center fw-bold"
+                                                 Style="color: #1a1a1a;">
+                                            @product.Name
+                                        </MudText>
+                                        
+                                        <MudDivider Class="my-4" />
+                                        
+                                        <div class="d-flex justify-center align-center">
+                                            <MudText Typo="Typo.h5" 
+                                                    Color="Color.Dark" 
+                                                    Class="fw-bold">
+                                                @product.Price.ToString("N2") ₺
+                                            </MudText>
+                                        </div>
+
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudTabPanel>
+            }
+        </MudTabs>
+    </div>
+
+    <MudPaper Class="@($"pa-4 ml-4 rounded-lg cart-container {(_cartChanged ? "cart-shake" : "")}")"
+    Style="width: 400px; max-height: 100vh; overflow-y: auto;">
+        <div class="d-flex flex-column" style="min-height: 100%;">
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Sepet</MudText>
+            @if (!cartItems.Any())
+            {
+                <div class="d-flex flex-column align-center justify-center" style="flex: 1;">
+                    <MudIcon Icon="@Icons.Material.Filled.ShoppingCart" 
+                             Size="Size.Large" 
+                             Style="font-size: 48px;"
+                             Color="Color.Default" />
+                    <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-4">
+                        Sepetiniz boş
+                    </MudText>
+                </div>
+            }
+            else
+            {
+                <div class="cart-items mb-4">
+                    @foreach (var item in cartItems)
+                    {
+                        <MudPaper Elevation="0" 
+                                 Class="pa-4 mb-2 rounded-lg"
+                                 Style="background-color: var(--mud-palette-background-grey);">
+                            <div class="d-flex justify-space-between align-center">
+                                <div class="flex-grow-1">
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight: 500;">
+                                        @item.Name
+                                    </MudText>
+                                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                        @item.Price.ToString("N2") ₺
+                                    </MudText>
+                                </div>
+                                <div class="d-flex align-center gap-2">
+                                    <MudIconButton Size="Size.Small"
+                                                 Icon="@Icons.Material.Filled.Remove"
+                                                 Color="Color.Default"
+                                                 OnClick="@(() => DecreaseQuantity(item))" />
+                                    <MudText Typo="Typo.body1" Style="min-width: 24px; text-align: center;">
+                                        @item.Quantity
+                                    </MudText>
+                                    <MudIconButton Size="Size.Small"
+                                                 Icon="@Icons.Material.Filled.Add"
+                                                 Color="Color.Primary"
+                                                 OnClick="@(() => IncreaseQuantity(item))" />
+                                    <MudIconButton Size="Size.Small"
+                                                 Icon="@Icons.Material.Filled.Delete"
+                                                 Color="Color.Error"
+                                                 OnClick="@(() => RemoveFromCart(item))" />
+                                </div>
+                            </div>
+                        </MudPaper>
+                    }
+                </div>
+
+                <div class="mt-auto">
+                    <MudDivider Class="mb-4" />
+                    <div class="d-flex justify-space-between mb-4">
+                        <MudText Typo="Typo.h6">Toplam</MudText>
+                        <MudText Typo="Typo.h6" Color="Color.Primary">
+                            @TotalAmount.ToString("N2") ₺
+                        </MudText>
+                    </div>
+                    <MudButton Variant="Variant.Filled"
+                              Color="Color.Primary"
+                              FullWidth="true"
+                              Size="Size.Large"
+                              OnClick="OpenPaymentDialog"
+                              StartIcon="@Icons.Material.Filled.Payment"
+                              Style="height: 48px;">
+                        Ödeme Yap
+                    </MudButton>
+                </div>
+            }
+        </div>
+    </MudPaper>
+</div>
+
+<MudOverlay Visible="_isLoading" DarkBackground="true" Absolute="true">
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+</MudOverlay>
+
+<style>
+    .cart-shake {
+        animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    }
+
+    @@keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-2px, 0, 0); }
+        40%, 60% { transform: translate3d(2px, 0, 0); }
+    }
+
+    .product-card {
+        background: white;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+    .product-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+
+    .mud-card-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .fw-bold {
+        font-weight: 600 !important;
+    }
+
+    .rounded-lg {
+        border-radius: 8px !important;
+    }
+</style>
+
+@code {
+
+    List<CategoryWithProductDto> categories = new List<CategoryWithProductDto>();
+    List<ProductDto> products = new List<ProductDto>();
+    private string factor => FormFactor.GetFormFactor();
+    private string platform => FormFactor.GetPlatform();
+    private List<OrderItemDto> cartItems = new List<OrderItemDto>();
+    private bool _cartChanged = false;
+    private bool _isLoading = false;
+    private Dictionary<Guid, PaymentDto> partialPayments = new();
+    private decimal TotalAmount => cartItems.Sum(i => i.Price * i.Quantity);
+    private decimal RemainingAmount => TotalAmount - partialPayments.Values.Select(o => o.Amount).Sum();
+
+    protected override async Task OnInitializedAsync()
+    {
+        categories = await _selfService.GetCategories();
+        products = categories.SelectMany(c => c.Products).ToList().Distinct().ToList();
+    }
+
+    private async Task TriggerCartAnimation()
+    {
+        _cartChanged = true;
+        StateHasChanged();
+        await Task.Delay(500); // Animation duration
+        _cartChanged = false;
+        StateHasChanged();
+    }
+
+    private async Task AddToCart(ProductDto product)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Product"] = product
+        };
+
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AddProductDialog>("Ürün Ekle", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Data is not null)  // result.Cancelled yerine result.Data kontrolü
+        {
+            var quantity = (int)result.Data;
+            cartItems.Add(new OrderItemDto
+            {
+                Name = product.Name,
+                Price = product.Price,
+                Quantity = quantity,
+                Id = Guid.NewGuid(),
+                ProductId = product.Id
+            });
+            
+            Snackbar.Add($"{quantity} adet {product.Name} sepete eklendi", Severity.Success);
+            await TriggerCartAnimation();
+        }
+    }
+
+    private async Task IncreaseQuantity(OrderItemDto item)
+    {
+        item.Quantity++;
+        await TriggerCartAnimation();
+    }
+
+    private async Task DecreaseQuantity(OrderItemDto item)
+    {
+        item.Quantity--;
+        if (item.Quantity <= 0)
+        {
+            cartItems.Remove(item);
+        }
+        await TriggerCartAnimation();
+    }
+
+    private async Task RemoveFromCart(OrderItemDto item)
+    {
+        var parameters = new DialogParameters
+        {
+            { "ContentText", $"{item.Name} sepetten silinecek. Emin misiniz?" },
+            { "ButtonText", "Sil" },
+            { "Color", Color.Error }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await DialogService.ShowAsync<MudMessageBox>("Ürünü Sil", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Data is true)  // result.Cancelled yerine result.Data kontrolü
+        {
+            cartItems.Remove(item);
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+            Snackbar.Add($"{item.Name} sepetten silindi", Severity.Info);
+            await TriggerCartAnimation();
+        }
+    }
+
+    private async Task OpenPaymentDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["CartItems"] = cartItems,
+            ["TotalAmount"] = TotalAmount,
+            ["PartialPayments"] = partialPayments
+        };
+
+        var dialog =  DialogService.Show<PaymentDialog>("Ödeme", parameters, new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        });
+
+        var result = await dialog.Result;
+        var payments = result.Data as Dictionary<Guid, PaymentDto>;
+        // if (result.Cancelled)
+        // {
+        //     // Modal kapandığında ödemeleri sıfırla
+        //     partialPayments.Clear();
+        //     return;
+        // }
+
+        if (RemainingAmount <= 0)
+        {
+            await CreateOrder();
+            partialPayments.Clear();
+        }
+    }
+
+    private async Task CreateOrder()
+    {
+        try 
+        {
+            _isLoading = true;
+            CreateOrderDto createOrderDto = new CreateOrderDto
+            {
+                Items = cartItems
+            };
+            await _selfService.CreateOrder(createOrderDto);
+            cartItems.Clear();
+            Snackbar.Add("Siparişiniz başarıyla oluşturuldu!", Severity.Success);
+        }
+        finally 
+        {
+            _isLoading = false;
+        }
+    }
+}

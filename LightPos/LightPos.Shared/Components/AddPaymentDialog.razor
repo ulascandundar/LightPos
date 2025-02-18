@@ -1,0 +1,43 @@
+@using LightPos.Core.Application.DTOs
+
+<MudDialog>
+    <DialogContent>
+        <MudContainer>
+            <MudText Class="mb-4">@ProductName için ödeme tutarını giriniz</MudText>
+            <MudText Class="mb-4">Maksimum ödeme tutarı: <strong>@MaxAmount.ToString("N2") ₺</strong></MudText>
+            
+            <MudNumericField @bind-Value="_amount"
+                            Label="Ödeme Tutarı"
+                            Min="0"
+                            Max="@MaxAmount"
+                            Format="N2"
+                            Immediate="true"
+                            Adornment="Adornment.Start"
+                            AdornmentText="₺" />
+        </MudContainer>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Variant="Variant.Outlined" Color="Color.Error">İptal</MudButton>
+        <MudButton OnClick="Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Success"
+                   Disabled="@(_amount <= 0 || _amount > MaxAmount)">
+            Ekle
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public decimal MaxAmount { get; set; }
+    [Parameter] public string ProductName { get; set; }
+
+    private decimal _amount;
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(_amount));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+} 

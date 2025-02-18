@@ -1,0 +1,106 @@
+@using LightPos.Core.Application.DTOs
+
+<MudDialog DisableSidePadding="true" Class="product-dialog">
+    <DialogContent>
+        <div class="d-flex" style="height: 100%">
+            <div class="d-flex flex-column flex-grow-1">
+                <div class="product-header">
+                    <div class="d-flex align-center justify-space-between">
+                        <MudText Typo="Typo.h5" 
+                                Style="font-weight: 500; color: var(--mud-palette-text-primary);">
+                            @Product.Name
+                        </MudText>
+                        <MudText Typo="Typo.h5" 
+                                Color="Color.Primary"
+                                Style="font-weight: 600;">
+                            @Product.Price.ToString("N2") ₺
+                        </MudText>
+                    </div>
+                </div>
+
+                <div class="flex-grow-1">
+                    <NumericKeypad @bind-Value="_quantity"
+                                  Label="Adet Seçin"
+                                  MaxValue="999"
+                                  MaxDigits="3" />
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <MudIconButton Icon="@Icons.Material.Filled.Close"
+                             Color="Color.Error"
+                             Size="Size.Large"
+                             Class="mb-4 action-button"
+                             OnClick="Cancel" />
+                             
+                <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
+                             Color="Color.Primary"
+                             Size="Size.Large"
+                             Class="action-button"
+                             Disabled="@(_quantity <= 0 || _quantity > 999)"
+                             OnClick="Submit" />
+            </div>
+        </div>
+    </DialogContent>
+</MudDialog>
+
+<style>
+    .product-dialog {
+        overflow: hidden;
+    }
+
+    .product-header {
+        padding: 20px 24px;
+        background: linear-gradient(to right, var(--mud-palette-background-grey), white);
+        border-bottom: 1px solid var(--mud-palette-lines-default);
+    }
+
+    .action-buttons {
+        padding: 20px;
+        border-left: 1px solid var(--mud-palette-lines-default);
+        display: flex;
+        flex-direction: column;
+        background-color: var(--mud-palette-background-grey);
+    }
+
+    .action-button {
+        width: 56px;
+        height: 56px;
+    }
+
+    ::deep .mud-dialog {
+        max-width: 600px !important;
+        height: auto !important;
+        max-height: 90vh !important;
+        display: flex;
+        flex-direction: column;
+        border-radius: 16px !important;
+    }
+
+    ::deep .mud-dialog-content {
+        flex: 1;
+        overflow: hidden;
+        padding: 0 !important;
+    }
+
+    ::deep .mud-icon-button {
+        border-radius: 12px;
+    }
+</style>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public ProductDto Product { get; set; }
+
+    private int _quantity = 1;
+
+    private void Submit()
+    {
+        if (_quantity > 0 && _quantity <= 999)
+        {
+            MudDialog.Close(DialogResult.Ok(_quantity));
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+} 

@@ -1,0 +1,315 @@
+﻿@using LightPos.Core.Application.DTOs
+@using LightPos.Core.Constants
+
+<MudDialog DisableSidePadding="true" Class="full-screen-dialog">
+
+    <DialogContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="py-6">
+            <MudPaper Elevation="0" Class="pa-4 rounded-lg mb-4">
+                <MudDataGrid T="OrderItemDto" 
+                Items="@CartItems"
+                MultiSelection="true"
+                @bind-SelectedItems="SelectedItems"
+                Hover="true"
+                Dense="false"
+                RowStyle="cursor: pointer;"
+                HeaderClass="mud-theme-primary"
+                RowClass="py-4">
+                    <Columns>
+                        <SelectColumn T="OrderItemDto" />
+                        <PropertyColumn Property="x => x.Name" Title="Ürün">
+                            <CellTemplate>
+                                <MudText Style="font-size: 1.2rem;">@context.Item.Name</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.Quantity" Title="Miktar">
+                            <CellTemplate>
+                                <MudText Style="font-size: 1.2rem;">@context.Item.Quantity</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.Price" Title="Birim Fiyat" Format="N2">
+                            <CellTemplate>
+                                <MudText Style="font-size: 1.2rem;">@(context.Item.Price.ToString("N2")) ₺</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.Price * x.Quantity" Title="Toplam" Format="N2">
+                            <CellTemplate>
+                                <MudText Style="font-size: 1.2rem;">@((context.Item.Price * context.Item.Quantity).ToString("N2")) ₺</MudText>
+                            </CellTemplate>
+                        </PropertyColumn>
+                        <TemplateColumn Title="Durum">
+                            <CellTemplate>
+                                @if (IsPaid(context.Item.Id))
+                                {
+                                    <MudChip Color="Color.Success" Size="Size.Large" Label="true" Style="font-size: 1.1rem;">Ödendi</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip Color="Color.Warning" Size="Size.Large" Label="true" Style="font-size: 1.1rem;">Bekliyor</MudChip>
+                                }
+                            </CellTemplate>
+                        </TemplateColumn>
+                    </Columns>
+                </MudDataGrid>
+            </MudPaper>
+
+            <div class="d-flex gap-4 mb-4">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg flex-grow-1" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Toplam Tutar</MudText>
+                    <MudText Align="Align.Center" Typo="Typo.h5" Color="Color.Dark" Style="font-weight: 500;">
+                        @TotalAmount.ToString("N2") ₺
+                    </MudText>
+                </MudPaper>
+
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg flex-grow-1" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Kalan Tutar</MudText>
+                    <MudText Align="Align.Center" Typo="Typo.h5" Color="Color.Error" Style="font-weight: 500;">
+                        @RemainingAmount.ToString("N2") ₺
+                    </MudText>
+                </MudPaper>
+
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg flex-grow-1" Style="background-color: var(--mud-palette-background-grey);">
+                    <MudText Align="Align.Center" Typo="Typo.h6">Seçili Ürünler Toplamı</MudText>
+                    <MudText Align="Align.Center" Typo="Typo.h5" Color="Color.Primary" Style="font-weight: 500;">
+                        @SelectedItemsTotal.ToString("N2") ₺
+                    </MudText>
+                </MudPaper>
+            </div>
+        </MudContainer>
+    </DialogContent>
+
+
+
+    <DialogActions>
+
+        <div class="d-flex justify-space-between align-center" style="width: 100%">
+            <MudButton OnClick="Cancel" 
+            Variant="Variant.Outlined" 
+            Color="Color.Error"
+            Size="Size.Large"
+            Style="height: 56px; font-size: 1.1rem; min-width: 160px;"
+            StartIcon="@Icons.Material.Filled.Cancel">
+                İptal
+            </MudButton>
+            <div class="payment-methods-container">
+                <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-4">Ödeme Yöntemi</MudText>
+                <MudRadioGroup T="string" 
+                               @bind-Value="@selectedPaymentMethod" 
+                               Class="d-flex gap-4">
+                    @foreach (var method in PaymentMethods.List)
+                    {
+                        <MudRadio T="string" Value="@method" Color="Color.Primary" Size="Size.Large">
+                            <MudText Typo="Typo.body1">@method</MudText>
+                        </MudRadio>
+                    }
+                </MudRadioGroup>
+            </div>
+            <div class="d-flex gap-4">
+                @if (!SelectedItems.Any())
+                {
+                    <MudButton OnClick="ProcessAllPayments"
+                    Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    Size="Size.Large"
+                    Style="height: 56px; font-size: 1.1rem; min-width: 200px;"
+                    StartIcon="@Icons.Material.Filled.Payment"
+                    IconSize="Size.Large"
+                    Disabled="@(CartItems.All(x => IsPaid(x.Id)) || string.IsNullOrEmpty(selectedPaymentMethod))">
+                        Tümünü Öde
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton OnClick="ProcessSelectedPayments"
+                    Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    Size="Size.Large"
+                    Style="height: 56px; font-size: 1.1rem; min-width: 200px;"
+                    StartIcon="@Icons.Material.Filled.Payment"
+                    IconSize="Size.Large"
+                    Disabled="@(SelectedItems.All(x => IsPaid(x.Id)) || string.IsNullOrEmpty(selectedPaymentMethod))">
+                        Seçilenleri Öde
+                    </MudButton>
+                }
+                <MudButton OnClick="Submit"
+                Variant="Variant.Filled"
+                Color="Color.Success"
+                Size="Size.Large"
+                Style="height: 56px; font-size: 1.1rem; min-width: 200px;"
+                StartIcon="@Icons.Material.Filled.CheckCircle"
+                IconSize="Size.Large"
+                Disabled="@(RemainingAmount > 0)">
+                    Ödemeyi Tamamla
+                </MudButton>
+            </div>
+        </div>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .full-screen-dialog {
+    max-height: 100vh !important;
+    max-width: 100vw !important;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    margin: 0;
+    border-radius: 0;
+    }
+
+    .mud-dialog-content {
+    padding: 0 !important;
+    }
+
+    .mud-table {
+    font-size: 1.1rem;
+    }
+
+    .mud-chip {
+    height: 32px;
+    font-size: 1rem;
+    }
+
+    .mud-typography {
+    font-size: 1.1rem;
+    }
+
+    .mud-typography.mud-h4 {
+    font-size: 2rem;
+    }
+
+    ::deep .mud-input {
+    font-size: 1.1rem;
+    }
+
+    ::deep .mud-checkbox {
+    transform: scale(1.2);
+    }
+
+    ::deep .mud-button-icon-size-large {
+    font-size: 1.5rem;
+    }
+
+    ::deep .mud-table-cell {
+    padding: 16px 8px !important;
+    }
+
+    ::deep .mud-table-head {
+    height: 64px !important;
+    }
+
+    ::deep .mud-table-head .mud-table-cell {
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    }
+
+    ::deep .mud-table-row {
+    height: 72px !important;
+    }
+
+    ::deep .mud-table-hover .mud-table-row:hover {
+    background-color: var(--mud-palette-background-grey) !important;
+    }
+
+    .payment-methods-container {
+    padding: 24px;
+    border-top: 1px solid var(--mud-palette-lines-default);
+    background-color: var(--mud-palette-background);
+    }
+
+    ::deep .mud-radio {
+    padding: 12px 16px;
+    border-radius: 8px;
+    background-color: var(--mud-palette-background-grey);
+    transition: all 0.2s ease-in-out;
+    }
+
+    ::deep .mud-radio:hover {
+    background-color: var(--mud-palette-background);
+    }
+
+    ::deep .mud-radio.mud-checked {
+    background-color: var(--mud-palette-primary-hover);
+    }
+
+    ::deep .mud-radio.mud-checked .mud-typography {
+    color: white;
+    }
+
+    ::deep .mud-radio-content {
+    padding-left: 8px;
+    }
+</style>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public List<OrderItemDto> CartItems { get; set; }
+    [Parameter] public decimal TotalAmount { get; set; }
+    [Parameter] public Dictionary<Guid, PaymentDto> PartialPayments { get; set; }
+
+    private HashSet<OrderItemDto> SelectedItems = new();
+    private decimal RemainingAmount => TotalAmount - PartialPayments.Values.Select(o=>o.Amount).Sum();
+    private decimal SelectedItemsTotal => SelectedItems.Sum(item => item.Price * item.Quantity);
+
+    private bool IsPaid(Guid id)
+    {
+        return PartialPayments.ContainsKey(id) && PartialPayments[id].Amount > 0;
+    }
+
+    private string selectedPaymentMethod = PaymentMethods.List.FirstOrDefault();
+
+    private void ProcessSelectedPayments()
+    {
+        if (string.IsNullOrEmpty(selectedPaymentMethod)) return;
+
+        foreach (var item in SelectedItems)
+        {
+            if (!IsPaid(item.Id))
+            {
+                if (!PartialPayments.ContainsKey(item.Id)){
+                    PartialPayments.Add(item.Id, new PaymentDto());
+                }
+                PartialPayments[item.Id].Amount = item.Price * item.Quantity;
+                PartialPayments[item.Id].PaymentMethod = selectedPaymentMethod;
+                PartialPayments[item.Id].OrderItemId = item.Id;
+            }
+        }
+    }
+
+    private void ProcessAllPayments()
+    {
+        if (string.IsNullOrEmpty(selectedPaymentMethod)) return;
+
+        foreach (var item in CartItems)
+        {
+            if (!IsPaid(item.Id))
+            {
+                if (!PartialPayments.ContainsKey(item.Id))
+                {
+                    PartialPayments.Add(item.Id, new PaymentDto());
+                }
+                PartialPayments[item.Id].Amount = item.Price * item.Quantity;
+                PartialPayments[item.Id].PaymentMethod = selectedPaymentMethod;
+                PartialPayments[item.Id].OrderItemId = item.Id;
+            }
+        }
+    }
+
+    private void Submit()
+    {
+        if (RemainingAmount <= 0)
+        {
+            MudDialog.Close(DialogResult.Ok(PartialPayments));
+        }
+    }
+
+    private void Cancel()
+    {
+        // Tüm ödemeleri temizle
+        PartialPayments.Clear();
+        // Dialog'u kapat
+        MudDialog.Cancel();
+    }
+}

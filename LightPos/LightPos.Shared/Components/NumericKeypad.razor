@@ -1,0 +1,185 @@
+@using System.Globalization
+
+<div class="keypad-container">
+    <div class="keypad-display">
+        <MudText Typo="Typo.h3" Color="Color.Dark" Class="mb-2">
+            @Value.ToString("N0", CultureInfo.GetCultureInfo("tr-TR"))
+        </MudText>
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@Label</MudText>
+        }
+    </div>
+
+    <div class="keypad-grid">
+        @for (int i = 1; i <= 9; i++)
+        {
+            var number = i;
+            <MudButton Class="keypad-button"
+                      OnClick="@(() => OnDigitClick(number))"
+                      Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      DisableElevation="true">
+                @number
+            </MudButton>
+        }
+        <MudButton Class="keypad-button"
+                  OnClick="@(() => OnClear())"
+                  Variant="Variant.Filled"
+                  Color="Color.Error"
+                  DisableElevation="true">
+            <MudIcon Icon="@Icons.Material.Filled.Clear" />
+        </MudButton>
+        <MudButton Class="keypad-button"
+                  OnClick="@(() => OnDigitClick(0))"
+                  Variant="Variant.Filled"
+                  Color="Color.Primary"
+                  DisableElevation="true">
+            0
+        </MudButton>
+        <MudButton Class="keypad-button"
+                  OnClick="@(() => OnBackspace())"
+                  Variant="Variant.Filled"
+                  Color="Color.Warning"
+                  DisableElevation="true">
+            <MudIcon Icon="@Icons.Material.Filled.Backspace" />
+        </MudButton>
+    </div>
+</div>
+
+<style>
+    .keypad-container {
+        background-color: var(--mud-palette-background);
+        padding: 20px 24px;
+    }
+
+    .keypad-display {
+        background-color: var(--mud-palette-background-grey);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+        text-align: center;
+        min-height: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .keypad-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 0 auto;
+    }
+
+    .keypad-button {
+        height: 64px !important;
+        border-radius: 12px !important;
+        font-size: 1.4rem !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+
+    .keypad-button ::deep .mud-button-label {
+        color: var(--mud-palette-text-primary);
+        font-weight: 500;
+    }
+
+    .keypad-button:hover {
+        transform: translateY(-2px);
+        background-color: var(--mud-palette-primary) !important;
+    }
+
+    .keypad-button:hover ::deep .mud-button-label {
+        color: white;
+    }
+
+    .keypad-button:active {
+        transform: translateY(1px);
+    }
+
+    ::deep .mud-button-filled {
+        box-shadow: none !important;
+        background-color: var(--mud-palette-background-grey) !important;
+    }
+
+    ::deep .mud-button-filled.mud-button-filled-error {
+        background-color: var(--mud-palette-error-hover) !important;
+    }
+
+    ::deep .mud-button-filled.mud-button-filled-error .mud-button-label {
+        color: white;
+    }
+
+    ::deep .mud-button-filled.mud-button-filled-warning {
+        background-color: var(--mud-palette-warning-hover) !important;
+    }
+
+    ::deep .mud-button-filled.mud-button-filled-warning .mud-button-label {
+        color: white;
+    }
+
+    ::deep .mud-icon-size-medium {
+        font-size: 1.4rem;
+    }
+
+    @@media (max-height: 600px) {
+        .keypad-container {
+            padding: 16px 20px;
+        }
+
+        .keypad-button {
+            height: 56px !important;
+            font-size: 1.2rem !important;
+        }
+
+        .keypad-display {
+            min-height: 60px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public string Label { get; set; }
+    [Parameter] public int MaxValue { get; set; } = 999;
+    [Parameter] public int MaxDigits { get; set; } = 3;
+    [Parameter] public EventCallback<int> ValueChanged { get; set; }
+
+    private bool isFirstDigit = true;
+
+    private async Task OnDigitClick(int digit)
+    {
+        if (Value.ToString().Length >= MaxDigits) return;
+
+        if (isFirstDigit)
+        {
+            Value = 0;
+            isFirstDigit = false;
+        }
+
+        int newValue = Value * 10 + digit;
+        if (newValue <= MaxValue)
+        {
+            Value = newValue;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+
+    private async Task OnBackspace()
+    {
+        Value = Value / 10;
+        await ValueChanged.InvokeAsync(Value);
+        if (Value == 0) isFirstDigit = true;
+    }
+
+    private async Task OnClear()
+    {
+        Value = 0;
+        isFirstDigit = true;
+        await ValueChanged.InvokeAsync(Value);
+    }
+} 
