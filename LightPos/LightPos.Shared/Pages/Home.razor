@@ -295,6 +295,9 @@
 
         var result = await dialog.Result;
         var payments = result.Data as Dictionary<Guid, PaymentDto>;
+        foreach (var payment in payments){
+            cartItems.FirstOrDefault(o => o.Id == payment.Key).PaymentMethod = payment.Value.PaymentMethod;
+        }
         // if (result.Cancelled)
         // {
         //     // Modal kapandığında ödemeleri sıfırla
